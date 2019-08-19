@@ -34,6 +34,10 @@ async function buildHacks(hacks) {
 
 	// write to dist
 	await Promise.all(output.map((file, idx) => fsp.writeFile(outputFiles[idx], file)));
+	var currdatetime = new Date();
+	console.log('finished writing to files');
+	console.log(currdatetime);
+	return output.code;
 
 	readme.parse();
 	readme.write();
