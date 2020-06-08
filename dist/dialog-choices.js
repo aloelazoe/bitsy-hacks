@@ -3,8 +3,8 @@
 @file dialog choices
 @summary binary dialog choices
 @license MIT
-@version 3.0.1
-@requires 5.3
+@version 4.0.1
+@requires 7.0
 @author Sean S. LeBlanc
 
 @description
@@ -13,38 +13,36 @@ Uses as an arrow cursor by default, but this can be changed in the hackOptions t
 
 Usage:
 {choice
-	- option one
-	  result of picking option
-	- option two
-	  result of picking option
+  - option one
+    result of picking option
+  - option two
+    result of picking option
 }
 
 Recommended uses:
 DLG_simple_response
 """
-Greeting text
-{choice
-	- Response one
-	  answer to response one
-	- Response two
-	  answer to response two
+Greeting text{choice
+  - Response one
+    answer to response one
+  - Response two
+    answer to response two
 }
 """
 
 DLG_complex_response
 """
-Greeting text
-{choice
-	- Response one
-	  {a = 1}
-	- Response two
-	  {a = 2}
+Greeting text{choice
+  - Response one
+    {a = 1}
+  - Response two
+    {a = 2}
 }
 constant part of answer{
-	- a == 1 ?
-	  custom part based on response one
-	- a == 2 ?
-	  custom part based on response two
+  - a == 1 ?
+    custom part based on response one
+  - a == 2 ?
+    custom part based on response two
 }
 """
 
@@ -62,18 +60,18 @@ e.g.
 """
 {a = 1}
 {choice
-	- Response one
-	  {a = 2}
-	- Response two
-	  {a = 3}
+  - Response one
+    {a = 2}
+  - Response two
+    {a = 3}
 }
 {
-	- a == 1 ?
-	  this will print
-	- a == 2 ?
-	  these will not
-	- a == 3 ?
-	  these will not
+  - a == 1 ?
+    this will print
+  - a == 2 ?
+    these will not
+  - a == 3 ?
+    these will not
 }
 """
 
@@ -81,7 +79,8 @@ HOW TO USE:
 1. Copy-paste into a script tag after the bitsy source
 2. Edit hackOptions below as needed
 */
-(function (bitsy) {
+this.hacks = this.hacks || {};
+(function (exports, bitsy) {
 'use strict';
 var hackOptions = {
 	// if defined, the cursor is drawn as the sprite with the given id
@@ -100,7 +99,7 @@ var hackOptions = {
 	},
 };
 
-bitsy = bitsy && bitsy.hasOwnProperty('default') ? bitsy['default'] : bitsy;
+bitsy = bitsy && Object.prototype.hasOwnProperty.call(bitsy, 'default') ? bitsy['default'] : bitsy;
 
 /**
 @file utils
@@ -130,7 +129,7 @@ function inject(searchRegex, replaceString) {
 
 	// error-handling
 	if (!code) {
-		throw 'Couldn\'t find "' + searchRegex + '" in script tags';
+		throw new Error('Couldn\'t find "' + searchRegex + '" in script tags');
 	}
 
 	// modify the content
@@ -144,7 +143,7 @@ function inject(searchRegex, replaceString) {
 }
 
 /**
- * Helper for getting an array with unique elements 
+ * Helper for getting an array with unique elements
  * @param  {Array} array Original array
  * @return {Array}       Copy of array, excluding duplicates
  */
@@ -363,7 +362,7 @@ var dialogChoices = {
 				// make sure to close dialog if there's nothing to say
 				// after the choice has been made
 				if (!dialogBuffer.CurCharCount()) {
-					dialogBuffer.Continue();
+					dialogBuffer.EndDialog();
 				}
 			}
 			return true;
@@ -390,10 +389,10 @@ function getCursorSprite(cursor) {
 // parsing
 // (adds a new sequence node type)
 inject$1(/(\|\| str === "shuffle")/, '$1 || str === "choice"');
-inject$1(/(state\.curNode\.AddChild\( new ShuffleNode\( options \) \);)/, `$1
-else if(sequenceType === "choice")
-	state.curNode.AddChild( new ChoiceNode( options ) );
-`);
+inject$1(/(state\.curNode\.AddChild\(new ShuffleNode\(options\)\);\n.*})/, `$1
+else if(sequenceType === "choice") {
+	state.curNode.AddChild(new ChoiceNode(options));
+}`);
 
 inject$1(/(var ShuffleNode = )/, `
 var ChoiceNode = function(options) {
@@ -418,7 +417,11 @@ var ChoiceNode = function(options) {
 		function evalChildren(children,done) {
 			if(i < children.length) {
 				children[i].Eval(environment, function(val) {
-					environment.GetDialogBuffer().AddLinebreak();
+					if (i === children.length - 1) {
+						environment.GetDialogBuffer().AddParagraphBreak();
+					} else {
+						environment.GetDialogBuffer().AddLinebreak();
+					}
 					lastVal = val;
 					i++;
 					evalChildren(children,done);
@@ -439,8 +442,7 @@ var ChoiceNode = function(options) {
 		if (environment.GetDialogBuffer().CurCharCount() > 0) {
 			environment.GetDialogBuffer().AddParagraphBreak();
 		}
-		evalChildren(this.options, function() {
-			environment.GetDialogBuffer().AddParagraphBreak();
+		evalChildren(this.options, function () {
 			onReturn(lastVal);
 		});
 	}
@@ -493,4 +495,6 @@ if(window.dialogChoices.choicesActive){
 }
 `);
 
-}(window));
+exports.hackOptions = hackOptions;
+
+}(this.hacks.dialog_choices = this.hacks.dialog_choices || {}, window));

@@ -3,7 +3,7 @@
 @file bitsymuse
 @summary A variety of Bitsy sound and music handlers
 @license MIT
-@version 3.1.1
+@version 3.1.4
 @requires 4.8, 4.9
 @author David Mowatt
 
@@ -59,7 +59,7 @@ var hackOptions = {
 	resume: false, // If true, songs will pause/resume on change; otherwise, they'll stop/play (doesn't affect sound effects)
 };
 
-bitsy = bitsy && bitsy.hasOwnProperty('default') ? bitsy['default'] : bitsy;
+bitsy = bitsy && Object.prototype.hasOwnProperty.call(bitsy, 'default') ? bitsy['default'] : bitsy;
 
 /**
 @file utils
@@ -89,7 +89,7 @@ function inject(searchRegex, replaceString) {
 
 	// error-handling
 	if (!code) {
-		throw 'Couldn\'t find "' + searchRegex + '" in script tags';
+		throw new Error('Couldn\'t find "' + searchRegex + '" in script tags');
 	}
 
 	// modify the content
@@ -113,7 +113,7 @@ function getRoom(name) {
 }
 
 /**
- * Helper for getting an array with unique elements 
+ * Helper for getting an array with unique elements
  * @param  {Array} array Original array
  * @return {Array}       Copy of array, excluding duplicates
  */
@@ -307,6 +307,13 @@ function addDialogFunction(tag, fn) {
 	kitsy.dialogFunctions[tag] = fn;
 }
 
+function injectDialogTag(tag, code) {
+	inject$1(
+		/(var functionMap = new Map\(\);[^]*?)(this.HasFunction)/m,
+		'$1\nfunctionMap.set("' + tag + '", ' + code + ');\n$2'
+	);
+}
+
 /**
  * Adds a custom dialog tag which executes the provided function.
  * For ease-of-use with the bitsy editor, tags can be written as
@@ -322,10 +329,7 @@ function addDialogFunction(tag, fn) {
  */
 function addDialogTag(tag, fn) {
 	addDialogFunction(tag, fn);
-	inject$1(
-		/(var functionMap = new Map\(\);)/,
-		'$1functionMap.set("' + tag + '", kitsy.dialogFunctions.' + tag + ');'
-	);
+	injectDialogTag(tag, 'kitsy.dialogFunctions["' + tag + '"]');
 }
 
 /**
@@ -344,10 +348,7 @@ function addDeferredDialogTag(tag, fn) {
 	addDialogFunction(tag, fn);
 	bitsy.kitsy.deferredDialogFunctions = bitsy.kitsy.deferredDialogFunctions || {};
 	var deferred = bitsy.kitsy.deferredDialogFunctions[tag] = [];
-	inject$1(
-		/(var functionMap = new Map\(\);)/,
-		'$1functionMap.set("' + tag + '", function(e, p, o){ kitsy.deferredDialogFunctions.' + tag + '.push({e:e,p:p}); o(null); });'
-	);
+	injectDialogTag(tag, 'function(e, p, o){ kitsy.deferredDialogFunctions["' + tag + '"].push({e:e,p:p}); o(null); }');
 	// Hook into the dialog finish event and execute the actual function
 	after('onExitDialog', function () {
 		while (deferred.length) {
@@ -388,6 +389,17 @@ function addDualDialogTag(tag, fn) {
 var audioElementsById = {};
 var currentMusic;
 var roomMusicFlag = null;
+
+// cleanup old audio tags if any are present (e.g. on restart)
+before('load_game', function () {
+	Object.entries(hackOptions.audio).forEach(function (entry) {
+		var el = document.getElementById(entry[0]);
+		if (el) {
+			el.remove();
+		}
+		delete audioElementsById[entry[0]];
+	});
+});
 
 after('load_game', function () {
 	var room;

@@ -3,7 +3,8 @@
 @file tracery processing
 @summary process all dialog text with a tracery grammar
 @license MIT
-@version 3.0.2
+@version 4.0.2
+@requires 7.0
 @author Sean S. LeBlanc
 
 @description
@@ -18,7 +19,11 @@ HOW TO USE:
 2. Add your entries to the `hackOptions` object below
 
 TRACERY NOTES:
-Tracery will look for symbols wrapped in hashes ("#"), and then use the entries in a provided
+Tracery will process the all dialog text using its syntax,
+which includes special characters such as "#", ":", "[", and "]"
+(these can be escaped by putting "\\" in front of them)
+
+The most common use will be symbols wrapped in hashes ("#"), which use the entries in a provided
 grammar object to "expand" them into the final text. For example, if you have the text and grammar
 	"I'm a #animal#"
 	+
@@ -42,6 +47,7 @@ See http://www.crystalcodepalace.com/traceryTut.html for more on how to use trac
 import tracery from 'tracery-grammar';
 import {
 	before,
+	inject,
 } from './helpers/kitsy-script-toolkit';
 
 export var hackOptions = {
@@ -57,8 +63,8 @@ var bitsyGrammar;
 before('onready', function () {
 	bitsyGrammar = tracery.createGrammar(hackOptions.grammar);
 	bitsyGrammar.addModifiers(hackOptions.modifiers || tracery.baseEngModifiers);
+	window.tracery = window.tracery || bitsyGrammar.flatten.bind(bitsyGrammar);
 });
 
-before('startDialog', function (dialogStr, dialogId) {
-	return [bitsyGrammar.flatten(dialogStr), dialogId];
-});
+// pre-process LiteralNode values with tracery grammar
+inject(/onReturn\(this\.value\)/, 'onReturn(window.tracery(this.value))');

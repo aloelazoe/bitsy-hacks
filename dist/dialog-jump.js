@@ -3,8 +3,8 @@
 @file dialog jump
 @summary jump from one dialog entry to another
 @license MIT
-@version 1.1.7
-@requires 5.3
+@version 2.0.0
+@requires 7.0
 @author Sean S. LeBlanc
 
 @description
@@ -34,7 +34,7 @@ Copy-paste into a script tag after the bitsy source
 (function (bitsy) {
 'use strict';
 
-bitsy = bitsy && bitsy.hasOwnProperty('default') ? bitsy['default'] : bitsy;
+bitsy = bitsy && Object.prototype.hasOwnProperty.call(bitsy, 'default') ? bitsy['default'] : bitsy;
 
 /**
 @file utils
@@ -64,7 +64,7 @@ function inject(searchRegex, replaceString) {
 
 	// error-handling
 	if (!code) {
-		throw 'Couldn\'t find "' + searchRegex + '" in script tags';
+		throw new Error('Couldn\'t find "' + searchRegex + '" in script tags');
 	}
 
 	// modify the content
@@ -78,7 +78,7 @@ function inject(searchRegex, replaceString) {
 }
 
 /**
- * Helper for getting an array with unique elements 
+ * Helper for getting an array with unique elements
  * @param  {Array} array Original array
  * @return {Array}       Copy of array, excluding duplicates
  */
@@ -272,6 +272,13 @@ function addDialogFunction(tag, fn) {
 	kitsy.dialogFunctions[tag] = fn;
 }
 
+function injectDialogTag(tag, code) {
+	inject$1(
+		/(var functionMap = new Map\(\);[^]*?)(this.HasFunction)/m,
+		'$1\nfunctionMap.set("' + tag + '", ' + code + ');\n$2'
+	);
+}
+
 /**
  * Adds a custom dialog tag which executes the provided function.
  * For ease-of-use with the bitsy editor, tags can be written as
@@ -287,10 +294,7 @@ function addDialogFunction(tag, fn) {
  */
 function addDialogTag(tag, fn) {
 	addDialogFunction(tag, fn);
-	inject$1(
-		/(var functionMap = new Map\(\);)/,
-		'$1functionMap.set("' + tag + '", kitsy.dialogFunctions.' + tag + ');'
-	);
+	injectDialogTag(tag, 'kitsy.dialogFunctions["' + tag + '"]');
 }
 
 /**
@@ -309,10 +313,7 @@ function addDeferredDialogTag(tag, fn) {
 	addDialogFunction(tag, fn);
 	bitsy.kitsy.deferredDialogFunctions = bitsy.kitsy.deferredDialogFunctions || {};
 	var deferred = bitsy.kitsy.deferredDialogFunctions[tag] = [];
-	inject$1(
-		/(var functionMap = new Map\(\);)/,
-		'$1functionMap.set("' + tag + '", function(e, p, o){ kitsy.deferredDialogFunctions.' + tag + '.push({e:e,p:p}); o(null); });'
-	);
+	injectDialogTag(tag, 'function(e, p, o){ kitsy.deferredDialogFunctions["' + tag + '"].push({e:e,p:p}); o(null); }');
 	// Hook into the dialog finish event and execute the actual function
 	after('onExitDialog', function () {
 		while (deferred.length) {
@@ -360,6 +361,7 @@ function jump(targetDialog) {
 		dialogStr = targetDialog;
 	} else {
 		dialogId = targetDialog;
+		dialogStr = dialogStr.src;
 	}
 	bitsy.startDialog(dialogStr, dialogId);
 }

@@ -3,12 +3,16 @@
 @file exit-from-dialog
 @summary exit to another room from dialog, including conditionals
 @license WTFPL (do WTF you want)
-@version 7.0.3
-@requires Bitsy Version: 6.0
+@version 8.0.1
+@requires Bitsy Version: 7.0
 @author @mildmojo
 
 @description
 Lets you exit to another room from dialog (including inside conditionals).
+
+Note: Bitsy has a built-in implementation of exit-from-dialog as of 7.0;
+before using this, you may want to check if it fulfills your needs.
+
 Use it to make an invisible sprite that acts as a conditional exit, use it to warp
 somewhere after a conversation, use it to put a guard at your gate who only
 lets you in once you're disguised, use it to require payment before the
@@ -50,6 +54,7 @@ these function calls with parentheses like the examples above.
 import bitsy from 'bitsy';
 import {
 	getRoom,
+	getRelativeNumber,
 } from './helpers/utils';
 import {
 	addDualDialogTag,
@@ -77,21 +82,8 @@ function getExitParams(parameters) {
 		room = bitsy.room[p.room];
 	}
 
-	if (!x) {
-		x = p.x;
-	} else if (x.startsWith('+') || x.startsWith('-')) {
-		x = p.x + Number(x);
-	} else {
-		x = Number(x);
-	}
-
-	if (!y) {
-		y = p.y;
-	} else if (y.startsWith('+') || y.startsWith('-')) {
-		y = p.y + Number(y);
-	} else {
-		y = Number(y);
-	}
+	x = getRelativeNumber(x, p.x);
+	y = getRelativeNumber(y, p.y);
 
 	return {
 		dest: {

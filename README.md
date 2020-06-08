@@ -15,6 +15,7 @@ A collection of re-usable scripts for [Adam Le Doux](https://twitter.com/adamled
 - ➿ [corrupt](/dist/corrupt.js): corrupts gamedata at runtime
 - 🅰 [custom text effect](/dist/custom-text-effect.js): make {custom}text effects{custom}
 - 🎞 [custom-exit-effects](/dist/custom-exit-effects.js): make custom exit transition effects
+- ⌨ [custom-keyhandlers](/dist/custom-keyhandlers.js): run custom code on key inputs
 - 💬 [dialog audio](/dist/dialog-audio.js): animal crossing-style audio
 - 🎺 [dialog audio vocal synth](/dist/dialog-audio-vocal-synth.js): animal crossing-style audio powered by the pink trombone vocal synth
 - 🔁 [dialog box transition](/dist/dialog-box-transition.js): adds an easing transition animation to display the dialog box text
@@ -27,6 +28,8 @@ A collection of re-usable scripts for [Adam Le Doux](https://twitter.com/adamled
 - 🖼 [dynamic background](/dist/dynamic-background.js): HTML background matching bitsy background
 - 📝 [edit dialog from dialog](/dist/edit-dialog-from-dialog.js): edit dialog from dialog (yes really)
 - 🖌 [edit image from dialog](/dist/edit-image-from-dialog.js): edit sprites, items, and tiles from dialog
+- 👯‍♂️ [edit player from dialog](/dist/edit-player-from-dialog.js): change which sprite is controlled by the player
+- 🏠 [edit room from dialog](/dist/edit-room-from-dialog.js): modify the content of a room from dialog
 - 🔚 [end-from-dialog](/dist/end-from-dialog.js): trigger an ending from dialog, including narration text
 - 🚪 [exit-from-dialog](/dist/exit-from-dialog.js): exit to another room from dialog, including conditionals
 - 🛰 [external-game-data](/dist/external-game-data.js): separate Bitsy game data from your (modded) HTML for easier development
@@ -42,6 +45,7 @@ A collection of re-usable scripts for [Adam Le Doux](https://twitter.com/adamled
 - 📎 [noclip](/dist/noclip.js): walk through wall tiles, sprites, items, exits, and endings
 - 🔄 [online](/dist/online.js): multiplayer bitsy
 - ⬛ [opaque tiles](/dist/opaque-tiles.js): tiles which hide the player
+- 🎨 [palette maps](/dist/palette-maps.js): allows color pallettes to be defined on a tile-by-tile basis
 - 📃 [paragraph-break](/dist/paragraph-break.js): Adds paragraph breaks to the dialogue parser
 - ⏳ [permanent items](/dist/permanent-items.js): prevent some items from being picked up
 - ➡ [push sprites](/dist/push-sprites.js): sokoban-style sprite pushing
@@ -51,6 +55,7 @@ A collection of re-usable scripts for [Adam Le Doux](https://twitter.com/adamled
 - 🛑 [solid items](/dist/solid-items.js): treat some items like sprites that can be placed multiple times
 - ⏱️ [stopwatch](/dist/stopwatch.js): time player actions
 - 🗣 [text-to-speech](/dist/text-to-speech.js): text-to-speech for bitsy dialog
+- 📐 [textbox styler](/dist/textbox-styler.js): customize the style and properties of the textbox
 - 🏰 [tracery processing](/dist/tracery-processing.js): process all dialog text with a tracery grammar
 - 🎞 [transitions](/dist/transitions.js): customizable WebGL transitions
 - 👁️‍🗨️ [transparent dialog](/dist/transparent-dialog.js): makes the dialog box have a transparent background

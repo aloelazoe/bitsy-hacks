@@ -3,7 +3,7 @@
 @file corrupt
 @summary corrupts gamedata at runtime
 @license MIT
-@version 3.0.6
+@version 3.0.7
 @requires 5.5
 @author Sean S. LeBlanc
 
@@ -51,7 +51,7 @@ var hackOptions = {
 	paletteAmplitude: 10, // how much to corrupt palette by (0-128)
 };
 
-bitsy = bitsy && bitsy.hasOwnProperty('default') ? bitsy['default'] : bitsy;
+bitsy = bitsy && Object.prototype.hasOwnProperty.call(bitsy, 'default') ? bitsy['default'] : bitsy;
 
 /**
 @file utils
@@ -81,7 +81,7 @@ function inject(searchRegex, replaceString) {
 
 	// error-handling
 	if (!code) {
-		throw 'Couldn\'t find "' + searchRegex + '" in script tags';
+		throw new Error('Couldn\'t find "' + searchRegex + '" in script tags');
 	}
 
 	// modify the content
@@ -105,13 +105,13 @@ Returns: the image in the given map with the given name/id
  */
 function getImage(name, map) {
 	var id = Object.prototype.hasOwnProperty.call(map, name) ? name : Object.keys(map).find(function (e) {
-		return map[e].name == name;
+		return map[e].name === name;
 	});
 	return map[id];
 }
 
 /**
- * Helper for getting an array with unique elements 
+ * Helper for getting an array with unique elements
  * @param  {Array} array Original array
  * @return {Array}       Copy of array, excluding duplicates
  */

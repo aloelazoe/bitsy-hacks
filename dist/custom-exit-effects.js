@@ -3,7 +3,7 @@
 @file custom-exit-effects
 @summary make custom exit transition effects
 @license MIT
-@version 1.1.1
+@version 1.1.2
 @requires 6.0
 @author Sean S. LeBlanc
 
@@ -70,7 +70,7 @@ var hackOptions = {
 	},
 };
 
-bitsy = bitsy && bitsy.hasOwnProperty('default') ? bitsy['default'] : bitsy;
+bitsy = bitsy && Object.prototype.hasOwnProperty.call(bitsy, 'default') ? bitsy['default'] : bitsy;
 
 /**
 @file utils
@@ -100,7 +100,7 @@ function inject(searchRegex, replaceString) {
 
 	// error-handling
 	if (!code) {
-		throw 'Couldn\'t find "' + searchRegex + '" in script tags';
+		throw new Error('Couldn\'t find "' + searchRegex + '" in script tags');
 	}
 
 	// modify the content
@@ -114,7 +114,7 @@ function inject(searchRegex, replaceString) {
 }
 
 /**
- * Helper for getting an array with unique elements 
+ * Helper for getting an array with unique elements
  * @param  {Array} array Original array
  * @return {Array}       Copy of array, excluding duplicates
  */

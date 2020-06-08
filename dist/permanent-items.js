@@ -3,7 +3,8 @@
 @file permanent items
 @summary prevent some items from being picked up
 @license MIT
-@version 2.1.5
+@version 3.0.1
+@requires 7.0
 @author Sean S. LeBlanc
 
 @description
@@ -25,7 +26,7 @@ var hackOptions = {
 	},
 };
 
-bitsy = bitsy && bitsy.hasOwnProperty('default') ? bitsy['default'] : bitsy;
+bitsy = bitsy && Object.prototype.hasOwnProperty.call(bitsy, 'default') ? bitsy['default'] : bitsy;
 
 /**
 @file utils
@@ -55,7 +56,7 @@ function inject(searchRegex, replaceString) {
 
 	// error-handling
 	if (!code) {
-		throw 'Couldn\'t find "' + searchRegex + '" in script tags';
+		throw new Error('Couldn\'t find "' + searchRegex + '" in script tags');
 	}
 
 	// modify the content
@@ -69,7 +70,7 @@ function inject(searchRegex, replaceString) {
 }
 
 /**
- * Helper for getting an array with unique elements 
+ * Helper for getting an array with unique elements
  * @param  {Array} array Original array
  * @return {Array}       Copy of array, excluding duplicates
  */
@@ -109,13 +110,6 @@ function before(targetFuncName, beforeFn) {
 	var kitsy = kitsyInit();
 	kitsy.queuedBeforeScripts[targetFuncName] = kitsy.queuedBeforeScripts[targetFuncName] || [];
 	kitsy.queuedBeforeScripts[targetFuncName].push(beforeFn);
-}
-
-// Ex: after('load_game', function run() { alert('Loaded!'); });
-function after(targetFuncName, afterFn) {
-	var kitsy = kitsyInit();
-	kitsy.queuedAfterScripts[targetFuncName] = kitsy.queuedAfterScripts[targetFuncName] || [];
-	kitsy.queuedAfterScripts[targetFuncName].push(afterFn);
 }
 
 function kitsyInit() {
@@ -235,33 +229,46 @@ before('movePlayer', function () {
 	room = bitsy.room[bitsy.curRoom];
 	oldItems = room.items.slice();
 });
-after('movePlayer', function () {
-	var newItems = room.items;
-	if (newItems.length === oldItems.length) {
-		return; // nothing changed
+before('startItemDialog', function (itemId, dialogCallback) {
+	// something changed
+	if (!hackOptions.itemIsPermanent(bitsy.item[itemId])) {
+		return undefined;
 	}
+	room = bitsy.room[bitsy.curRoom];
+	oldItems = room.items.slice();
+	return [itemId, function () {
+		var newItems = room.items;
+		if (newItems.length === oldItems.length) {
+			return; // nothing changed
+		}
 
-	// check for changes
-	for (var i = 0; i < oldItems.length; ++i) {
-		if (!newItems[i]
-			|| oldItems[i].x !== newItems[i].x
-			|| oldItems[i].y !== newItems[i].y
-			|| oldItems[i].id !== newItems[i].id
-		) {
-			// something changed
-			if (hackOptions.itemIsPermanent(bitsy.item[oldItems[i].id])) {
-				// put that back!
-				newItems.splice(i, 0, oldItems[i]);
-			} else {
-				// add an empty entry for now to keep the arrays aligned
-				newItems.splice(i, 0, null);
+		// check for changes
+		for (var i = 0; i < oldItems.length; ++i) {
+			if (!newItems[i]
+				|| oldItems[i].x !== newItems[i].x
+				|| oldItems[i].y !== newItems[i].y
+				|| oldItems[i].id !== newItems[i].id
+			) {
+				// something changed
+				if (hackOptions.itemIsPermanent(bitsy.item[oldItems[i].id])) {
+					// put that back!
+					newItems.splice(i, 0, oldItems[i]);
+				} else {
+					// add an empty entry for now to keep the arrays aligned
+					newItems.splice(i, 0, null);
+				}
 			}
 		}
-	}
-	// clear out those empty entries
-	room.items = newItems.filter(function (item) {
-		return !!item;
-	});
+		// clear out those empty entries
+		room.items = newItems.filter(function (item) {
+			return !!item;
+		});
+
+		// run the actual callback
+		if (dialogCallback) {
+			dialogCallback();
+		}
+	}];
 });
 
 exports.hackOptions = hackOptions;
